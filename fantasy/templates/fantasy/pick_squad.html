@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Pick squad{% endblock %}
+
+{% block content %}
+{% if transfers %}
+  <p class="transfer-note">
+    {% if transfers.first_squad %}
+      Your first squad is free to change until the next deadline.
+    {% elif transfers.chip %}
+      <strong>{{ transfers.chip }}</strong> is active: {{ transfers.made }} change{{ transfers.made|pluralize }}, no points cost.
+    {% else %}
+      Transfers: <strong>{{ transfers.made }}</strong> made, <strong>{{ transfers.free }}</strong> free{% if transfers.cost %}, <strong>-{{ transfers.cost }} pts</strong>{% endif %}.
+    {% endif %}
+  </p>
+{% endif %}
+<h1>Pick your squad</h1>
+
+{% if errors %}
+<ul class="errors">
+  {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<div class="stats">
+  <div class="stat"><strong><span id="count">0</span>/{{ squad_size }}</strong>Players</div>
+  <div class="stat"><strong>£<span id="cost">0.0</span>m</strong>Spent</div>
+  <div class="stat"><strong>£<span id="bank">{{ budget }}</span>m</strong>Left to spend</div>
+  {% for code, label, limit in position_limits %}
+    <div class="stat"><strong><span data-pos-count="{{ code }}">0</span>/{{ limit }}</strong>{{ label }}s</div>
+  {% endfor %}
+</div>
+
+<div class="filters">
+  <input type="text" id="f-q" placeholder="Search name">
+  <select id="f-pos">
+    <option value="">All positions</option>
+    {% for code, label in positions %}
+      <option value="{{ code }}">{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select id="f-team">
+    <option value="">All teams</option>
+    {% for t in teams %}
+      <option value="{{ t.id }}">{{ t.name }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<form method="post" id="squad-form" data-budget="{{ budget }}" data-size="{{ squad_size }}">
+  {% csrf_token %}
+  <p>
+    <label for="team_name">Team name</label>
+    <input type="text" id="team_name" name="team_name" value="{{ team_name }}" maxlength="50" required>
+    <button type="submit">Save squad</button>
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th></th><th>Player</th><th>Team</th><th>Pos</th><th>Price</th><th>Points</th></tr>
+      {% for p in players %}
+      <tr class="player-row"
+          data-pos="{{ p.position }}"
+          data-team="{{ p.team_id }}"
+          data-price="{{ p.price }}"
+          data-name="{{ p.first_name|lower }} {{ p.last_name|lower }} {{ p.web_name|lower }}">
+        <td><input type="checkbox" name="players" value="{{ p.id }}" {% if p.id in selected_ids %}checked{% endif %}></td>
+        <td>{{ p.web_name }}</td>
+        <td>{{ p.team.short_name }}</td>
+        <td>{{ p.position }}</td>
+        <td>£{{ p.price }}m</td>
+        <td>{{ p.total_points }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</form>
+
+<script>
+(function () {
+  var form = document.getElementById('squad-form');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('tr.player-row'));
+  var budget = parseFloat(form.dataset.budget);
+  var bankEl = document.getElementById('bank');
+
+  function refresh() {
+    var count = 0, cost = 0, byPos = {};
+    rows.forEach(function (row) {
+      if (row.querySelector('input[type=checkbox]').checked) {
+        count += 1;
+        cost += parseFloat(row.dataset.price);
+        byPos[row.dataset.pos] = (byPos[row.dataset.pos] || 0) + 1;
+      }
+    });
+    document.getElementById('count').textContent = count;
+    document.getElementById('cost').textContent = cost.toFixed(1);
+    bankEl.textContent = (budget - cost).toFixed(1);
+    bankEl.classList.toggle('over', budget - cost < 0);
+    document.querySelectorAll('[data-pos-count]').forEach(function (el) {
+      el.textContent = byPos[el.dataset.posCount] || 0;
+    });
+  }
+
+  function applyFilters() {
+    var q = document.getElementById('f-q').value.toLowerCase().trim();
+    var pos = document.getElementById('f-pos').value;
+    var team = document.getElementById('f-team').value;
+    rows.forEach(function (row) {
+      var show = (!q || row.dataset.name.indexOf(q) !== -1) &&
+                 (!pos || row.dataset.pos === pos) &&
+                 (!team || row.dataset.team === team);
+      row.style.display = show ? '' : 'none';
+    });
+  }
+
+  form.addEventListener('change', refresh);
+  ['f-q', 'f-pos', 'f-team'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', applyFilters);
+  });
+  refresh();
+})();
+</script>
+{% endblock %}

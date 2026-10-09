@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Fantasy Football{% endblock %}
+
+{% block content %}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="shirt" viewBox="0 0 64 64">
+    <path d="M22 6 L8 12 L2 26 L13 32 L16 27 L16 58 L48 58 L48 27 L51 32 L62 26 L56 12 L42 6 Q32 14 22 6 Z"/>
+  </symbol>
+</svg>
+
+{% if news_players %}
+<div class="ticker">
+  {% for p in news_players %}
+    <a class="ticker-item" href="{% url 'players:player_detail' p.pk %}">
+      <span class="dot status-{{ p.status }}"></span>
+      <strong>{{ p.web_name }}</strong> {{ p.news|truncatechars:55 }}
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="home-grid">
+
+  <section class="panel hero">
+    {% if top_player %}
+      <div class="hero-art">
+        <svg class="shirt big club-{{ top_player.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
+      </div>
+      <p class="eyebrow">Most points this season</p>
+      <h1>{{ top_player.web_name }}</h1>
+      <p class="muted">{{ top_player.team.name }} · {{ top_player.position.name }} · £{{ top_player.price }}m</p>
+      <p class="big-number">{{ top_player.total_points }} <span>points</span></p>
+    {% else %}
+      <h1>Welcome</h1>
+      <p class="muted">No players yet. Run <code>python manage.py import_data</code> to load them.</p>
+    {% endif %}
+
+    <div class="hero-actions">
+      {% if user.is_authenticated %}
+        <a class="btn" href="{% url 'my_team' %}">Go to my team</a>
+      {% else %}
+        <a class="btn" href="{% url 'accounts:register' %}">Create your team</a>
+        <a class="btn btn-light" href="{% url 'accounts:login' %}">Log in</a>
+      {% endif %}
+      <a class="btn btn-light" href="{% url 'players:player_list' %}">Browse players</a>
+    </div>
+  </section>
+
+  <section class="panel news-list">
+    <h2>Player news</h2>
+    {% for p in news_players %}
+      <a class="news-item" href="{% url 'players:player_detail' p.pk %}">
+        <div>
+          <strong>{{ p.web_name }}</strong>
+          <span class="tag status-{{ p.status }}">{{ p.get_status_display }}</span>
+          <p>{{ p.news }}</p>
+          <small>{{ p.team.name }}</small>
+        </div>
+        <svg class="shirt small club-{{ p.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
+      </a>
+    {% empty %}
+      <p class="muted">No injury news right now.</p>
+    {% endfor %}
+  </section>
+
+  <section class="panel fixtures-side">
+    <div class="side-head">
+      <h2>Fixtures</h2>
+      <a class="btn btn-light" href="{% url 'players:fixtures' %}">View all</a>
+    </div>
+
+    {% if gameweek %}
+      <p class="muted">{{ gameweek.name }}</p>
+      <p><strong>Deadline: {{ gameweek.deadline|date:"D j M, H:i" }}</strong></p>
+      <p class="countdown" data-deadline="{{ gameweek.deadline|date:'c' }}"></p>
+
+      <div class="side-scroll">
+        {% for day in days %}
+          <h3 class="day-title">{% if day.date %}{{ day.date|date:"D j M" }}{% else %}Date to be confirmed{% endif %}</h3>
+          {% for m in day.matches %}
+            <div class="mini-match">
+              <span class="home">{{ m.home_team.name }} <span class="crest club-{{ m.home_team.short_name }}">{{ m.home_team.short_name }}</span></span>
+              <span class="when">
+                {% if m.started or m.finished %}
+                  {{ m.home_score|default_if_none:"-" }} - {{ m.away_score|default_if_none:"-" }}
+                {% elif m.kickoff %}
+                  {{ m.kickoff|time:"H:i" }}
+                {% else %}
+                  TBC
+                {% endif %}
+              </span>
+              <span class="away"><span class="crest club-{{ m.away_team.short_name }}">{{ m.away_team.short_name }}</span> {{ m.away_team.name }}</span>
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">No fixtures yet.</p>
+    {% endif %}
+  </section>
+
+</div>
+
+<h2 class="section-title">Top performers</h2>
+<div class="top-grid">
+  {% for code, label, group in top_by_position %}
+    <div class="panel">
+      <h3>{{ label }}</h3>
+      {% for p in group %}
+        <a class="top-row" href="{% url 'players:player_detail' p.pk %}">
+          <svg class="shirt small club-{{ p.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
+          <span class="name">{{ p.web_name }} <small>{{ p.team.short_name }}</small></span>
+          <strong>{{ p.total_points }}</strong>
+        </a>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+(function () {
+  var el = document.querySelector('.countdown');
+  if (!el) return;
+  var target = new Date(el.dataset.deadline).getTime();
+  function tick() {
+    var diff = target - Date.now();
+    if (isNaN(diff)) { el.textContent = ''; return; }
+    if (diff <= 0) { el.textContent = 'Deadline passed'; return; }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    el.textContent = d + 'd ' + h + 'h ' + m + 'm left';
+  }
+  tick();
+  setInterval(tick, 60000);
+})();
+</script>
+{% endblock %}

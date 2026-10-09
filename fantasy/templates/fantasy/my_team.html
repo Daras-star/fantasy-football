@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}My team{% endblock %}
+
+{% block content %}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="shirt" viewBox="0 0 64 64">
+    <path d="M22 6 L8 12 L2 26 L13 32 L16 27 L16 58 L48 58 L48 27 L51 32 L62 26 L56 12 L42 6 Q32 14 22 6 Z"/>
+  </symbol>
+</svg>
+
+<div class="team-layout">
+
+  <aside class="panel side">
+    <h2>{{ team.name }}</h2>
+    <p class="muted">{{ user.username }}</p>
+        {% if next_gameweek %}
+      <p class="deadline-note">
+        <strong>{{ next_gameweek.name }}</strong><br>
+        Deadline: {{ next_gameweek.deadline|date:"D j M, H:i" }}<br>
+        <span class="muted">Changes you save now count from this gameweek.</span>
+      </p>
+    {% else %}
+      <p class="deadline-note">The season is over. Teams are locked.</p>
+    {% endif %}
+
+        {% if active_chip %}
+      <p class="chip-note"><strong>{{ active_chip }}</strong> is active for {{ next_gameweek.name }}.</p>
+      {% if transfers %}
+  <p class="transfer-note">
+    {% if transfers.first_squad %}
+      Your first squad is free to change until the next deadline.
+    {% elif transfers.chip %}
+      <strong>{{ transfers.chip }}</strong> is active: {{ transfers.made }} change{{ transfers.made|pluralize }}, no points cost.
+    {% else %}
+      Transfers: <strong>{{ transfers.made }}</strong> made, <strong>{{ transfers.free }}</strong> free{% if transfers.cost %}, <strong>-{{ transfers.cost }} pts</strong>{% endif %}.
+    {% endif %}
+  </p>
+{% endif %}
+    {% endif %}
+    <h3>Points and stats</h3>
+    <dl class="kv-list">
+      <div class="kv"><dt>Total points</dt><dd>{{ team.total_points }}</dd></div>
+      {% if rank %}
+        <div class="kv"><dt>Overall rank</dt><dd>{{ rank.0 }} <span class="muted">of {{ rank.1 }}</span></dd></div>
+      {% endif %}
+      <div class="kv"><dt>Squad value</dt><dd>£{{ cost }}m</dd></div>
+      <div class="kv"><dt>In the bank</dt><dd>£{{ bank }}m</dd></div>
+      {% if formation %}
+        <div class="kv"><dt>Formation</dt><dd>{{ formation }}</dd></div>
+      {% endif %}
+    </dl>
+
+    <div class="side-actions">
+      <a class="btn" href="{% url 'pick_squad' %}">{% if has_squad %}Edit squad{% else %}Pick squad{% endif %}</a>
+      {% if has_squad %}
+        <a class="btn btn-light" href="{% url 'pick_lineup' %}">Set lineup</a>
+        <a class="btn btn-light" href="{% url 'chips' %}">Chips</a>
+      {% endif %}
+    </div>
+  </aside>
+
+  <section class="panel main">
+    <h1>Pick team</h1>
+
+    {% if not has_squad %}
+      <p class="muted">You haven't built a squad yet. Pick 15 players to get started.</p>
+    {% elif not has_lineup %}
+      <p class="muted">Your squad is ready. Now choose your starting XI, captain and vice-captain.</p>
+    {% else %}
+      <div class="pitch">
+        {% for pos, row in pitch_rows %}
+          <div class="pitch-row">
+            {% for sp in row %}
+              <div class="player">
+                {% if sp.is_captain %}<span class="badge cap">C</span>{% elif sp.is_vice_captain %}<span class="badge cap">V</span>{% endif %}
+                {% if sp.player.status != 'a' %}<span class="badge flag" title="{{ sp.player.news }}">!</span>{% endif %}
+                <svg class="shirt club-{{ sp.player.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
+                <div class="plate">
+                  <strong>{{ sp.player.web_name }}</strong>
+                  <span>{{ sp.player.team.short_name }} · £{{ sp.player.price }}m</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <h3 class="bench-title">Substitutes</h3>
+      <div class="bench">
+        {% for sp in bench %}
+          <div class="player">
+            <svg class="shirt club-{{ sp.player.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
+            <div class="plate">
+              <strong>{{ sp.player.web_name }}</strong>
+              <span>{{ sp.player.position }} · {{ sp.player.team.short_name }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Players{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/players.css' %}">
+{% endblock %}
+
+{% block content %}
+<style>
+  .table-wrap td { color: #1b0030 !important; }
+  .table-wrap td a { color: #37003c !important; }
+  select { color: #1b0030 !important; background: #ffffff !important; }
+</style>
+<h1>Players</h1>
+
+<form method="get" class="filters">
+  <label>Search
+    <input type="search" name="q" value="{{ selected.q }}" placeholder="Player name">
+  </label>
+  <label>Position
+    <select name="position">
+      <option value="">All</option>
+      {% for position in positions %}
+        <option value="{{ position.short_name }}" {% if selected.position == position.short_name %}selected{% endif %}>{{ position.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Club
+    <select name="team">
+      <option value="">All</option>
+      {% for team in teams %}
+        <option value="{{ team.short_name }}" {% if selected.team == team.short_name %}selected{% endif %}>{{ team.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Sort by
+    <select name="sort">
+      {% for key, label in sort_options %}
+        <option value="{{ key }}" {% if selected.sort == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit" class="btn">Apply</button>
+</form>
+
+{% if page_obj %}
+  <div class="table-wrap">
+    <table class="players">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Club</th>
+          <th>Pos</th>
+          <th class="num">Price</th>
+          <th class="num">Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for player in page_obj %}
+          <tr>
+            <td>
+                 <a href="{% url 'players:player_detail' player.pk %}">{{ player.web_name }}</a>
+              {% if player.status != "a" %}
+                <span class="status status-{{ player.status }}">{{ player.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>{{ player.team.short_name }}</td>
+            <td>{{ player.position.short_name }}</td>
+            <td class="num">£{{ player.price }}m</td>
+            <td class="num">{{ player.total_points }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <nav class="pager" aria-label="Pages">
+    {% if page_obj.has_previous %}
+      <a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+  </nav>
+{% else %}
+  <p class="aside">No players match. If you haven't loaded the data yet, run <code>python manage.py import_data</code>.</p>
+{% endif %}
+{% endblock %}

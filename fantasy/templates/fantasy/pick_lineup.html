@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Set lineup{% endblock %}
+
+{% block content %}
+<h1>Set your lineup</h1>
+<p>Tick 11 starters, then choose a captain (double points) and a vice-captain.
+   Allowed: 1 goalkeeper, 3 to 5 defenders, 2 to 5 midfielders, 1 to 3 forwards.</p>
+
+{% if errors %}
+<ul class="errors">
+  {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  <table>
+    <tr><th>Start</th><th>Captain</th><th>Vice</th><th>Player</th><th>Pos</th><th>Team</th><th>Points</th></tr>
+    {% for sp in squad %}
+    <tr>
+      <td><input type="checkbox" name="starters" value="{{ sp.player_id }}" {% if sp.player_id in selected_ids %}checked{% endif %}></td>
+      <td><input type="radio" name="captain" value="{{ sp.player_id }}" {% if sp.player_id == captain_id %}checked{% endif %}></td>
+      <td><input type="radio" name="vice_captain" value="{{ sp.player_id }}" {% if sp.player_id == vice_id %}checked{% endif %}></td>
+      <td>{{ sp.player.web_name }}</td>
+      <td>{{ sp.player.position }}</td>
+      <td>{{ sp.player.team.short_name }}</td>
+      <td>{{ sp.player.total_points }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p>
+    <button type="submit">Save lineup</button>
+    <a href="{% url 'my_team' %}">Cancel</a>
+  </p>
+</form>
+{% endblock %}

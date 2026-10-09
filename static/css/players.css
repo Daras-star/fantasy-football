@@ -1,0 +1,67 @@
+/* Player list and player pages */
+
+h2 {
+  margin: 2rem 0 0.75rem;
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.6rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.filters input,
+.filters select {
+  min-width: 9rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+  background: var(--paper);
+  font: inherit;
+  font-weight: 400;
+}
+
+.table-wrap { overflow-x: auto; }
+.players {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.players th,
+.players td {
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.players thead th { background: var(--turf); color: #fff; font-weight: 600; }
+.players .num { text-align: right; font-variant-numeric: tabular-nums; }
+.players tbody tr:hover { background: var(--chalk); }
+
+/* Yellow card for doubtful, red card for out. */
+.status {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0 0.45rem;
+  border-radius: 3px;
+  background: var(--yellow-card);
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.status-i,
+.status-s,
+.status-u,
+.status-n { background: var(--red-card); color: #fff; }
+
+.pager { display: flex; align-items: center; gap: 1.25rem; margin-top: 1.25rem; }

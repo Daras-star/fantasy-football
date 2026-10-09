@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Leagues{% endblock %}
+
+{% block content %}
+<h1>Mini-leagues</h1>
+
+<div class="league-forms">
+  <form method="post" action="{% url 'leagues:create' %}" class="panel">
+    {% csrf_token %}
+    <h2>Create a league</h2>
+    <p class="muted">You'll get a code to share with your friends.</p>
+    <input type="text" name="name" placeholder="League name" maxlength="50" required>
+    <button type="submit">Create</button>
+  </form>
+
+  <form method="post" action="{% url 'leagues:join' %}" class="panel">
+    {% csrf_token %}
+    <h2>Join a league</h2>
+    <p class="muted">Enter the 6-character code from a friend.</p>
+    <input type="text" name="code" placeholder="e.g. K7PX2M" maxlength="6" required>
+    <button type="submit">Join</button>
+  </form>
+</div>
+
+<h2>Your leagues</h2>
+{% if rows %}
+<table>
+  <tr><th>League</th><th class="num">Members</th><th class="num">Your rank</th></tr>
+  {% for row in rows %}
+  <tr>
+    <td>
+      <a href="{% url 'leagues:detail' row.league.pk %}">{{ row.league.name }}</a>
+      {% if row.is_admin %}<span class="muted">(admin)</span>{% endif %}
+    </td>
+    <td class="num">{{ row.members }}</td>
+    <td class="num">{{ row.rank }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+  <div class="card">You're not in any leagues yet. Create one above, or join a friend's with their code.</div>
+{% endif %}
+{% endblock %}

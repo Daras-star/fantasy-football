@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ player.web_name }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/players.css' %}">
+
+{% block content %}
+<style>
+  .table-wrap table.players td { color: #1b0030 !important; background: #ffffff !important; }
+  .table-wrap table.players tr:hover td { background: #f1ecf6 !important; }
+</style>
+<p class="aside">   <a href="{% url 'players:player_list' %}">Back to players</a></p>
+
+<h1>{{ player.full_name }}</h1>
+
+<dl class="card details">
+  <dt>Club</dt>
+  <dd>{{ player.team.name }}</dd>
+  <dt>Position</dt>
+  <dd>{{ player.position.name }}</dd>
+  <dt>Price</dt>
+  <dd>£{{ player.price }}m</dd>
+  <dt>Points</dt>
+  <dd>{{ player.total_points }}</dd>
+  <dt>Status</dt>
+  <dd>{{ player.get_status_display }}{% if player.news %}: {{ player.news }}{% endif %}</dd>
+</dl>
+
+<h2>Next fixtures</h2>
+
+{% if upcoming %}
+  <div class="table-wrap">
+    <table class="players">
+      <thead>
+        <tr>
+          <th>Gameweek</th>
+          <th>Opponent</th>
+          <th>Venue</th>
+          <th>Kick-off</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in upcoming %}
+          <tr>
+            <td>{{ row.fixture.gameweek.number|default:"-" }}</td>
+            <td>{{ row.opponent.name }}</td>
+            <td>{{ row.venue }}</td>
+            <td>{{ row.fixture.kickoff|date:"D j M, H:i T" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="aside">No upcoming fixtures are scheduled.</p>
+{% endif %}
+{% endblock %}

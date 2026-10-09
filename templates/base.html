@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Fantasy Football{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fantasy.css' %}">
+      {% block extra_head %}{% endblock %}
+</head>
+<body>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="shirt" viewBox="0 0 64 64">
+      <path style="fill: var(--shirt, #9aa0a6)" d="M22 6 L16 9 L16 58 L48 58 L48 9 L42 6 Q32 14 22 6 Z"/>
+      <path style="fill: var(--trim, #ffffff)" d="M22 6 L8 12 L2 26 L13 32 L16 27 L16 9 Z"/>
+      <path style="fill: var(--trim, #ffffff)" d="M42 6 L56 12 L62 26 L51 32 L48 27 L48 9 Z"/>
+      <path style="fill: var(--trim, #ffffff)" d="M22 6 Q32 14 42 6 L39 4 Q32 9 25 4 Z"/>
+    </symbol>
+  </svg>
+  <nav>
+    <a class="brand" href="{% url 'home' %}">Fantasy Football</a>
+    <a href="{% url 'players:player_list' %}">Players</a>
+    <a href="{% url 'players:fixtures' %}">Fixtures</a>
+    <a href="{% url 'players:table' %}">Table</a>
+    <a href="{% url 'leaderboard' %}">Leaderboard</a>
+    <a href="{% url 'leagues:list' %}">Leagues</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'my_team' %}">My team</a>
+      <a href="{% url 'accounts:profile' %}">Account</a>
+      <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="link-button">Log out ({{ user.username }})</button>
+      </form>
+    {% else %}
+      <a href="{% url 'accounts:login' %}">Log in</a>
+      <a href="{% url 'accounts:register' %}">Register</a>
+    {% endif %}
+  </nav>
+  <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

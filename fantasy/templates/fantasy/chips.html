@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Chips{% endblock %}
+
+{% block content %}
+<h1>Chips</h1>
+<p class="muted">
+  Chips are one-gameweek boosts. You get each chip once in each half of the season
+  (Gameweeks 1 to 19 and 20 to 38), and only one chip can be active in a gameweek.
+</p>
+
+{% if target %}
+<p class="deadline-note">
+  <strong>{{ target.name }}</strong><br>
+  Deadline: {{ target.deadline|date:"D j M, H:i" }}<br>
+  <span class="muted">You can play or cancel a chip until then.</span>
+</p>
+{% endif %}
+
+{% if not ready %}
+  <div class="card">
+    Pick your 15-player squad and 11 starters before playing a chip.
+    <a href="{% url 'my_team' %}">Go to my team</a>
+  </div>
+{% endif %}
+
+<div class="chip-grid">
+  {% for c in cards %}
+  <div class="panel chip-card chip-{{ c.state }}">
+    <h2>{{ c.name }}</h2>
+    <p>{{ c.description }}</p>
+
+    {% if c.state == 'active' %}
+      <p class="chip-status">Active for {{ target.name }}</p>
+      <form method="post" action="{% url 'cancel_chip' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger">Cancel chip</button>
+      </form>
+
+    {% elif c.state == 'available' %}
+      {% if ready %}
+        <form method="post" action="{% url 'play_chip' %}">
+          {% csrf_token %}
+          <input type="hidden" name="chip" value="{{ c.code }}">
+          <button type="submit">Play {{ c.name }}</button>
+        </form>
+      {% else %}
+        <p class="muted">Set your squad and lineup first.</p>
+      {% endif %}
+
+        {% elif c.state == 'used' %}
+      <p class="muted">Used in Gameweek {{ c.used_in }}. You get one use per half of the season.</p>
+
+    {% elif c.state == 'early' %}
+      <p class="muted">Not available in Gameweek 1. It opens from Gameweek 2.</p>
+
+    {% elif c.state == 'cooldown' %}
+      <p class="muted">You can't play a Free Hit two gameweeks in a row.</p>
+
+    {% else %}
+      <p class="muted">The season is over.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% if history %}
+<h2>Chips you've played</h2>
+<table>
+  <tr><th>Gameweek</th><th>Chip</th></tr>
+  {% for row in history %}
+  <tr><td>{{ row.gameweek.name }}</td><td>{{ row.chip }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}

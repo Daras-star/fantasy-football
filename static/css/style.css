@@ -1,0 +1,165 @@
+/* Fantasy Football: base styles */
+
+:root {
+  --turf: #1c4a32;
+  --turf-deep: #123423;
+  --chalk: #eef2ef;
+  --paper: #ffffff;
+  --line: #d3dcd6;
+  --ink: #14211a;
+  --muted: #55655c;
+  --yellow-card: #f4c20d;
+  --red-card: #b3261e;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--chalk);
+}
+
+h1 {
+  margin: 0 0 1.25rem;
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-size: 2.4rem;
+  line-height: 1.1;
+}
+
+a { color: var(--turf); }
+:focus-visible { outline: 3px solid var(--turf); outline-offset: 2px; }
+
+/* Navbar */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 0.85rem 1.5rem;
+  background: var(--turf);
+  color: #fff;
+}
+.navbar a,
+.navbar button { color: #fff; text-decoration: none; }
+.navbar a:hover,
+.navbar button:hover { color: var(--yellow-card); }
+.navbar :focus-visible { outline-color: var(--yellow-card); }
+
+/* The brand mark is a centre circle with the halfway line through it. */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.brand::before {
+  content: "";
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: linear-gradient(currentColor, currentColor) center / 2px 100% no-repeat;
+}
+
+.navbar nav { display: flex; align-items: center; gap: 1.25rem; }
+.logout-form { margin: 0; }
+.logout-form button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Page layout */
+.container { max-width: 960px; margin: 2rem auto; padding: 0 1.25rem; }
+.card { max-width: 26rem; padding: 1.5rem; background: var(--paper); border: 1px solid var(--line); }
+.aside { color: var(--muted); }
+
+/* Forms */
+.form > div { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1.1rem; }
+.form label { font-weight: 600; }
+.form input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+  font: inherit;
+}
+.helptext { color: var(--muted); font-size: 0.9rem; }
+.helptext ul { margin: 0; padding-left: 1.1rem; }
+.errorlist { margin: 0; padding-left: 1.1rem; color: var(--red-card); font-weight: 600; }
+
+.btn {
+  padding: 0.6rem 1.3rem;
+  border: 0;
+  border-radius: 3px;
+  background: var(--turf);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn:hover { background: var(--turf-deep); }
+
+/* Flash messages */
+.messages { margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.messages li { padding: 0.7rem 1rem; background: var(--paper); border-left: 4px solid var(--turf); }
+.messages li.error { border-left-color: var(--red-card); }
+
+/* Account details */
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1.5rem; }
+.details dt { color: var(--muted); }
+.details dd { margin: 0; }
+/* ---------- Batch 2 additions ---------- */
+nav { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 12px 0; }
+.logout-form { display: inline; margin: 0; }
+.link-button { background: none; border: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
+
+.messages { list-style: none; padding: 0; margin: 0 0 16px; }
+.messages li { padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; background: #e8f7ee; border: 1px solid #b6e2c5; }
+.messages li.error { background: #fdecec; border-color: #f5c2c2; }
+
+.errors { background: #fdecec; border: 1px solid #f5c2c2; border-radius: 6px; padding: 10px 14px 10px 32px; margin-bottom: 16px; }
+.errorlist { color: #b00020; padding-left: 18px; margin: 0; }
+
+.card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+
+.btn { display: inline-block; background: #1f4a36; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+.btn-light { background: #fff; color: #1f4a36; border: 1px solid #1f4a36; }
+
+.filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.stats { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+.stat { background: #fff; border: 1px solid #ddd; padding: 10px 14px; border-radius: 8px; font-size: 13px; }
+.stat strong { display: block; font-size: 20px; }
+.over { color: #b00020; }
+
+.table-wrap { max-height: 520px; overflow-y: auto; }
+.table-wrap th { position: sticky; top: 0; background: #fff; }
+
+.pitch { background: #2e8b57; border-radius: 8px; padding: 12px 8px; margin-bottom: 16px; }
+.pitch-row { display: flex; justify-content: center; gap: 12px; margin: 14px 0; flex-wrap: wrap; }
+.kit { background: #fff; border-radius: 6px; padding: 8px 10px; min-width: 100px; text-align: center; font-size: 13px; }
+.kit small { display: block; color: #666; }
+.badge { display: inline-block; background: #1f4a36; color: #fff; border-radius: 50%; width: 18px; height: 18px; line-height: 18px; font-size: 11px; margin-left: 4px; }
+.bench { display: flex; gap: 12px; flex-wrap: wrap; }
+.deadline-note { background: rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 12px 0; }
+/* ---------- Leaderboard ---------- */
+tr.me td { background: rgba(0, 230, 118, 0.14); }
+.pager { display: flex; gap: 12px; align-items: center; justify-content: center; margin: 16px 0; }
+/* ---------- Mini-leagues ---------- */
+.league-forms { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.league-forms .panel { margin-bottom: 0; }
+.league-forms input { width: 100%; margin: 8px 0; }
+.join-code-box { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--panel); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; }
+.join-code { font-size: 28px; letter-spacing: 0.2em; color: var(--accent); font-family: ui-monospace, Consolas, monospace; }
+.league-actions { display: flex; gap: 12px; align-items: center; margin-top: 20px; }
+.league-actions form { margin: 0; }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+@media (max-width: 700px) { .league-forms { grid-template-columns: 1fr; } }

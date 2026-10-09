@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Fixtures{% endblock %}
+
+{% block content %}
+<h1>Fixtures &amp; Results</h1>
+
+{% if not gameweek %}
+  <div class="card">No fixtures yet. Run <code>python manage.py import_data</code> to load them.</div>
+{% else %}
+<div class="panel fixtures-card">
+
+  <div class="gw-nav">
+    {% if previous %}
+      <a class="gw-arrow" href="?gw={{ previous.number }}" aria-label="Previous gameweek">&lsaquo;</a>
+    {% else %}
+      <span class="gw-arrow disabled">&lsaquo;</span>
+    {% endif %}
+
+    <div>
+      <h2>{{ gameweek.name }}</h2>
+      {% if start %}<div class="muted">{{ start|date:"D j M" }} - {{ end|date:"D j M" }}</div>{% endif %}
+    </div>
+
+    {% if following %}
+      <a class="gw-arrow" href="?gw={{ following.number }}" aria-label="Next gameweek">&rsaquo;</a>
+    {% else %}
+      <span class="gw-arrow disabled">&rsaquo;</span>
+    {% endif %}
+  </div>
+
+  <div class="gw-meta">
+    <strong>Deadline: {{ gameweek.deadline|date:"D j M, H:i" }}</strong>
+    <span class="muted">All times are shown in local time</span>
+  </div>
+
+  {% for day in days %}
+    <h3 class="day-title">{% if day.date %}{{ day.date|date:"D j M" }}{% else %}Date to be confirmed{% endif %}</h3>
+    {% for m in day.matches %}
+      <div class="match">
+        <div class="home">{{ m.home_team.name }} <span class="crest club-{{ m.home_team.short_name }}">{{ m.home_team.short_name }}</span></div>
+        <div class="when">
+          {% if m.started or m.finished %}
+            {{ m.home_score|default_if_none:"-" }} - {{ m.away_score|default_if_none:"-" }}
+          {% elif m.kickoff %}
+            {{ m.kickoff|time:"H:i" }}
+          {% else %}
+            TBC
+          {% endif %}
+        </div>
+        <div class="away"><span class="crest club-{{ m.away_team.short_name }}">{{ m.away_team.short_name }}</span> {{ m.away_team.name }}</div>
+      </div>
+    {% endfor %}
+  {% empty %}
+    <p class="muted">No fixtures in this gameweek.</p>
+  {% endfor %}
+
+</div>
+{% endif %}
+{% endblock %}

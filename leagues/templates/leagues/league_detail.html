@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}{{ league.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ league.name }}</h1>
+
+<div class="join-code-box">
+  <span class="muted">Join code</span>
+  <strong class="join-code">{{ league.join_code }}</strong>
+  <span class="muted">Share this with friends so they can join.</span>
+</div>
+
+{% if mine %}
+<div class="stats">
+  <div class="stat"><strong>{{ mine.rank }}</strong>Your rank{% if selected %} ({{ selected.name }}){% endif %}</div>
+  <div class="stat"><strong>{{ mine.points }}</strong>{% if selected %}Gameweek points{% else %}Total points{% endif %}</div>
+  <div class="stat"><strong>{{ standings|length }}</strong>Members</div>
+</div>
+{% endif %}
+
+<form method="get" class="filters">
+  <select name="gw" onchange="this.form.submit()">
+    <option value="">Overall</option>
+    {% for g in gameweeks %}
+      <option value="{{ g.number }}" {% if selected and selected.pk == g.pk %}selected{% endif %}>{{ g.name }}</option>
+    {% endfor %}
+  </select>
+  <noscript><button type="submit">Show</button></noscript>
+</form>
+
+<table>
+  <tr>
+    <th>Rank</th>
+    <th>Team</th>
+    <th>Manager</th>
+    <th class="num">{% if selected %}Points{% else %}Total{% endif %}</th>
+  </tr>
+  {% for row in standings %}
+  <tr class="{% if row.item.user_id == user.id %}me{% endif %}">
+    <td>{{ row.rank }}</td>
+    <td>{{ row.item.name }}</td>
+    <td>{{ row.item.user.username }}{% if row.item.user_id == league.admin_id %} <span class="muted">(admin)</span>{% endif %}</td>
+    <td class="num"><strong>{{ row.points }}</strong></td>
+  </tr>
+  {% endfor %}
+</table>
+
+<div class="league-actions">
+  <a class="btn btn-light" href="{% url 'leagues:list' %}">All my leagues</a>
+  {% if is_admin %}
+    <form method="post" action="{% url 'leagues:delete' league.pk %}" onsubmit="return confirm('Delete this league for everyone?');">
+      {% csrf_token %}
+      <button type="submit" class="btn-danger">Delete league</button>
+    </form>
+  {% else %}
+    <form method="post" action="{% url 'leagues:leave' league.pk %}" onsubmit="return confirm('Leave this league?');">
+      {% csrf_token %}
+      <button type="submit" class="btn-danger">Leave league</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Table{% endblock %}
+
+{% block content %}
+<h1>Table</h1>
+
+<form method="get" class="filters">
+  <select name="gw" onchange="this.form.submit()">
+    <option value="">All matchweeks</option>
+    {% for g in gameweeks %}
+      <option value="{{ g.number }}" {% if selected and selected.pk == g.pk %}selected{% endif %}>Up to {{ g.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="venue" onchange="this.form.submit()">
+    <option value="all" {% if venue == 'all' %}selected{% endif %}>Home &amp; away</option>
+    <option value="home" {% if venue == 'home' %}selected{% endif %}>Home</option>
+    <option value="away" {% if venue == 'away' %}selected{% endif %}>Away</option>
+  </select>
+  {% if selected or venue != 'all' %}
+    <a class="btn btn-light" href="{% url 'players:table' %}">Reset</a>
+  {% endif %}
+  <noscript><button type="submit">Show</button></noscript>
+</form>
+
+{% if not has_results %}
+  <p class="muted">No matches have been played yet, so every club is level.</p>
+{% endif %}
+
+<div class="standings-wrap">
+  <table class="league-table">
+    <thead>
+      <tr>
+        <th>Pos</th>
+        <th class="team">Team</th>
+        <th>Pl</th>
+        <th>W</th>
+        <th>D</th>
+        <th>L</th>
+        <th class="hide-sm">GF</th>
+        <th class="hide-sm">GA</th>
+        <th>GD</th>
+        <th>Pts</th>
+        <th>Form</th>
+        <th>Next</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in table %}
+      <tr class="{% if row.zone %}zone-{{ row.zone }}{% endif %}">
+        <td class="pos">{{ row.position }}</td>
+        <td class="team">
+          <div class="team-cell">
+            <span class="crest club-{{ row.team.short_name }}">{{ row.team.short_name }}</span>
+            {{ row.team.name }}
+          </div>
+        </td>
+        <td>{{ row.played }}</td>
+        <td>{{ row.won }}</td>
+        <td>{{ row.drawn }}</td>
+        <td>{{ row.lost }}</td>
+        <td class="hide-sm">{{ row.goals_for }}</td>
+        <td class="hide-sm">{{ row.goals_against }}</td>
+        <td>{{ row.goal_difference }}</td>
+        <td class="pts">{{ row.points }}</td>
+        <td>
+          <span class="form-row">
+            {% for result in row.form %}<span class="form form-{{ result }}">{{ result }}</span>{% endfor %}
+          </span>
+        </td>
+        <td>
+          {% if row.next %}
+            <span class="next-cell" title="{{ row.next.0.name }} ({{ row.next.1 }})">
+              <span class="crest club-{{ row.next.0.short_name }}">{{ row.next.0.short_name }}</span>
+              <small>{{ row.next.1 }}</small>
+            </span>
+          {% else %}-{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="legend">
+  <span><i style="background:#3d6bff"></i>Top four</span>
+  <span><i style="background:#ff4d6a"></i>Bottom three</span>
+  <span>H = home, A = away</span>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Your account{% endblock %}
+
+{% block content %}
+<h1>Your account</h1>
+
+<dl class="card details">
+  <dt>Username</dt>
+  <dd>{{ user.username }}</dd>
+  <dt>Email</dt>
+  <dd>{{ user.email }}</dd>
+  <dt>Joined</dt>
+  <dd>{{ user.date_joined|date:"j F Y" }}</dd>
+</dl>
+{% endblock %}
