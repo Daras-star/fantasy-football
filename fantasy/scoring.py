@@ -73,19 +73,57 @@ def calculate_gameweek_points(position, matches):
     return sum(calculate_player_points(position, match) for match in matches)
 
 
-def calculate_team_points(squad, stats_by_player_id, chip=None):
-    """Total points for one fantasy team in one gameweek.
+def team_breakdown(squad, stats_by_player_id, chip=None):
+    """Points for every player in a lineup, one row each.
 
-    squad: SquadPlayer or GameweekPick objects for the team.
-    stats_by_player_id: {player_id: [match stats, ...]} for that gameweek.
-    chip: the chip played that gameweek ('TC' or 'BB'), or None.
+    Each row is a dict with:
+      entry       the squad object
+      played      True once the player has any minutes
+      base        the player's own points, before any multiplier
+      multiplier  2 for the captain (3 with Triple Captain), else 1
+      counts      True if the player counts towards the total
+                  (starters, or everyone with Bench Boost)
+      points      what the player adds to the total (0 if not counted)
 
-    Starters score, and bench players replace any starter who didn't play
-    (see substitutions.py). With Bench Boost the whole bench scores instead.
-    The captain's points are doubled (tripled with Triple Captain). If the
-    captain didn't play, the vice-captain gets the bonus instead.
+    If the captain didn't play, the vice-captain gets the multiplier instead.
     """
     squad = list(squad)
+
+    def played(entry):
+        return any(m.minutes > 0 for m in stats_by_player_id.get(entry.player_id, []))
+
+    captain = next((e for e in squad if e.is_captain), None)
+    vice_captain = next((e for e in squad if e.is_vice_captain), None)
+
+    if captain is not None and played(captain):
+        boosted = captain
+    elif vice_captain is not None and played(vice_captain):
+        boosted = vice_captain
+    else:
+        boosted = None
+
+    boost = TRIPLE_CAPTAIN_MULTIPLIER if chip == TRIPLE_CAPTAIN else CAPTAIN_MULTIPLIER
+
+    rows = []
+    for entry in squad:
+        matches = stats_by_player_id.get(entry.player_id, [])
+        base = calculate_gameweek_points(position_of(entry.player), matches)
+        counts = entry.is_starter or chip == BENCH_BOOST
+        multiplier = boost if entry is boosted else 1
+        rows.append({
+            'entry': entry,
+            'played': played(entry),
+            'base': base,
+            'multiplier': multiplier,
+            'counts': counts,
+            'points': base * multiplier if counts else 0,
+        })
+    return rows
+
+
+def calculate_team_points(squad, stats_by_player_id, chip=None):
+    """Total points for one fantasy team in one gameweek (the sum of the rows)."""
+    return sum(row['points'] for row in team_breakdown(squad, stats_by_player_id, chip))
 
     def played(entry):
         return any(m.minutes > 0 for m in stats_by_player_id.get(entry.player_id, []))

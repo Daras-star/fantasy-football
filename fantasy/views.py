@@ -10,6 +10,7 @@ from players.models import Player, Team
 from . import rules
 from .chips import CHIPS
 from .deadlines import next_gameweek, snapshot_missing, transfer_summary
+from .live import live_gameweek, points_by_player
 from .models import FantasyTeam, SquadPlayer
 from .ranking import overall_rank
 from .bank import get_bank
@@ -73,7 +74,15 @@ def my_team(request):
     )
     has_lineup = len(starters) == rules.STARTING_XI_SIZE
 
+    # Points each player has earned in the gameweek being played (shown on the pitch)
+    live = live_gameweek()
+    live_points = points_by_player(live, squad) if live else {}
+    for sp in squad:
+        sp.gw_points = live_points.get(sp.player_id)
+
     return render(request, 'fantasy/my_team.html', {
+        'live_gameweek': live,
+        'live_counts': bool(live) and team.scores.filter(gameweek=live).exists(),
         'team': team,
         'pitch_rows': pitch_rows,
         'bench': bench,

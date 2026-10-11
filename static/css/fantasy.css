@@ -141,6 +141,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.04); }
 .plate { background: #fff; color: #1b0030; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
 .plate strong { display: block; padding: 3px 4px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .plate span { display: block; background: #37003c; color: #fff; padding: 2px 4px; font-size: 11px; }
+.plate span.pts { background: #00ff85; color: #1b0030; font-weight: 700; font-size: 12px; }
 
 .badge { position: absolute; top: 0; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 700; display: grid; place-items: center; z-index: 2; }
 .badge.cap { left: 8px; background: #1a0030; color: #fff; border: 1px solid #fff; }
@@ -153,6 +154,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.04); }
 @media (max-width: 600px) {
   .player { width: 70px; }
   .plate span { display: none; }
+  .plate span.pts { display: block; }
 }
 /* ---------- Fixtures page ---------- */
 .fixtures-card { max-width: 900px; margin: 0 auto; }
@@ -294,3 +296,6 @@ tr:hover td { background: rgba(255, 255, 255, 0.04); }
   .hide-sm { display: none; }
   .league-table { min-width: 0; }
 }
+/* ---------- Points page ---------- */
+.plate span.pts.played { background: #00a85a; font-weight: 800; }
+.player.dim { opacity: 0.7; }

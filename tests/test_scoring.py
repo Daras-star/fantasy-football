@@ -6,6 +6,7 @@ from fantasy.scoring import (
     calculate_gameweek_points,
     calculate_player_points,
     calculate_team_points,
+    team_breakdown,
 )
 
 
@@ -166,3 +167,31 @@ class AutoSubPointsTests(SimpleTestCase):
     def test_a_substitute_scores_for_a_starter_who_didnt_play(self):
         # Without the sub the midfielder scores 2. With it, the bench midfielder's 7 counts.
         self.assertEqual(self.points(0) - self.points(90), 5)
+class BreakdownTests(SimpleTestCase):
+    def test_rows_show_each_players_points_and_the_captain_multiplier(self):
+        squad = [
+            make_entry(1, 'FWD', captain=True),
+            make_entry(2, 'MID'),
+            make_entry(3, 'MID', starter=False),
+        ]
+        stats = {1: [make_stats(goals_scored=1)], 2: [make_stats()], 3: [make_stats(goals_scored=1)]}
+        rows = {r['entry'].player_id: r for r in team_breakdown(squad, stats)}
+        self.assertEqual((rows[1]['base'], rows[1]['multiplier'], rows[1]['points']), (6, 2, 12))
+        self.assertEqual((rows[2]['base'], rows[2]['multiplier'], rows[2]['points']), (2, 1, 2))
+        self.assertEqual((rows[3]['base'], rows[3]['counts'], rows[3]['points']), (7, False, 0))
+
+    def test_a_player_with_no_stats_has_not_played(self):
+        rows = team_breakdown([make_entry(1, 'FWD', captain=True)], {})
+        self.assertFalse(rows[0]['played'])
+        self.assertEqual(rows[0]['points'], 0)
+
+    def test_the_total_is_the_sum_of_the_rows(self):
+        squad = [make_entry(1, 'FWD', captain=True), make_entry(2, 'MID', vice=True),
+                 make_entry(3, 'DEF'), make_entry(4, 'GKP', starter=False)]
+        stats = {1: [make_stats(goals_scored=2, bonus=3)], 2: [make_stats(assists=1)],
+                 3: [make_stats(clean_sheets=1)], 4: [make_stats(saves=6)]}
+        for chip in (None, 'TC', 'BB'):
+            self.assertEqual(
+                calculate_team_points(squad, stats, chip),
+                sum(r['points'] for r in team_breakdown(squad, stats, chip)),
+            )

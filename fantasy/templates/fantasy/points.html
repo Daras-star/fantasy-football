@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Points{% endblock %}
+
+{% block content %}
+{% if not selected %}
+  <div class="panel">
+    <h1>Points</h1>
+    {% if joined_late %}
+      <p>You joined after the {{ last_closed.name }} deadline, so your team starts scoring from the next gameweek.</p>
+    {% else %}
+      <p class="muted">Your points will show here once your first gameweek has started.</p>
+    {% endif %}
+    {% if next_gameweek %}
+      <p><strong>{{ next_gameweek.name }}</strong> deadline: {{ next_gameweek.deadline|date:"D j M, H:i" }}</p>
+    {% endif %}
+    <a class="btn" href="{% url 'my_team' %}">Back to my team</a>
+  </div>
+{% else %}
+<div class="team-layout">
+
+  <aside class="panel side">
+    <h2>{{ selected.gameweek.name }}</h2>
+    <form method="get" class="filters">
+      <select name="gw" onchange="this.form.submit()">
+        {% for s in scores %}
+          <option value="{{ s.gameweek.number }}" {% if s.pk == selected.pk %}selected{% endif %}>{{ s.gameweek.name }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit">Show</button></noscript>
+    </form>
+
+    <dl class="kv-list">
+      <div class="kv"><dt>Gameweek points</dt><dd>{{ gross }}</dd></div>
+      {% if transfer_cost %}
+        <div class="kv"><dt>Transfer cost</dt><dd>-{{ transfer_cost }}</dd></div>
+        <div class="kv"><dt>Net points</dt><dd>{{ net }}</dd></div>
+      {% endif %}
+      {% if chip_name %}
+        <div class="kv"><dt>Chip</dt><dd>{{ chip_name }}</dd></div>
+      {% endif %}
+      <div class="kv"><dt>Total points</dt><dd>{{ team.total_points }}</dd></div>
+    </dl>
+
+    <p class="muted">
+      {% if selected.gameweek.finished %}
+        This gameweek is finished.
+      {% else %}
+        Live: points update each time results are imported. Bonus points are added after each match.
+      {% endif %}
+    </p>
+    <div class="side-actions">
+      <a class="btn btn-light" href="{% url 'my_team' %}">My team</a>
+    </div>
+  </aside>
+
+  <section class="panel main">
+    <h1>Points</h1>
+
+    <div class="pitch">
+      {% for pos, group in pitch_rows %}
+        <div class="pitch-row">
+          {% for row in group %}
+            <div class="player">
+              {% if row.entry.is_captain %}<span class="badge cap">C</span>{% elif row.entry.is_vice_captain %}<span class="badge cap">V</span>{% endif %}
+              <svg class="shirt club-{{ row.entry.player.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
+              <div class="plate">
+                <strong>{{ row.entry.player.web_name }}</strong>
+                <span class="pts{% if row.played %} played{% endif %}">{% if row.played %}{{ row.display }}{% if row.multiplier > 1 %} (x{{ row.multiplier }}){% endif %}{% else %}-{% endif %}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <h3 class="bench-title">Substitutes</h3>
+    <div class="bench">
+      {% for row in bench %}
+        <div class="player{% if not row.counts %} dim{% endif %}">
+          <svg class="shirt club-{{ row.entry.player.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
+          <div class="plate">
+            <strong>{{ row.entry.player.web_name }}</strong>
+            <span class="pts{% if row.played %} played{% endif %}">{% if row.played %}{{ row.display }}{% else %}-{% endif %}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endif %}
+{% endblock %}

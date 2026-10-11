@@ -48,13 +48,20 @@
       {% if formation %}
         <div class="kv"><dt>Formation</dt><dd>{{ formation }}</dd></div>
       {% endif %}
-    </dl>
+        </dl>
+    {% if live_gameweek %}
+      <p class="muted">
+        Points on the pitch are for {{ live_gameweek.name }}.
+        {% if not live_counts %}Your team joined after that deadline, so they don't count towards your total.{% endif %}
+      </p>
+    {% endif %}
 
     <div class="side-actions">
       <a class="btn" href="{% url 'pick_squad' %}">{% if has_squad %}Edit squad{% else %}Pick squad{% endif %}</a>
       {% if has_squad %}
         <a class="btn btn-light" href="{% url 'pick_lineup' %}">Set lineup</a>
         <a class="btn btn-light" href="{% url 'chips' %}">Chips</a>
+        <a class="btn btn-light" href="{% url 'points' %}">Points</a>
       {% endif %}
     </div>
   </aside>
@@ -77,7 +84,11 @@
                 <svg class="shirt club-{{ sp.player.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
                 <div class="plate">
                   <strong>{{ sp.player.web_name }}</strong>
-                  <span>{{ sp.player.team.short_name }} · £{{ sp.player.price }}m</span>
+                                    {% if sp.gw_points is not None %}
+                    <span class="pts">{{ sp.gw_points }} pts</span>
+                  {% else %}
+                    <span>{{ sp.player.team.short_name }} · £{{ sp.player.price }}m</span>
+                  {% endif %}
                 </div>
               </div>
             {% endfor %}
@@ -92,7 +103,11 @@
             <svg class="shirt club-{{ sp.player.team.short_name }}" aria-hidden="true"><use href="#shirt"/></svg>
             <div class="plate">
               <strong>{{ sp.player.web_name }}</strong>
-              <span>{{ sp.player.position }} · {{ sp.player.team.short_name }}</span>
+                            {% if sp.gw_points is not None %}
+                <span class="pts">{{ sp.gw_points }} pts</span>
+              {% else %}
+                <span>{{ sp.player.position }} · {{ sp.player.team.short_name }}</span>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
