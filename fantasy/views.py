@@ -10,7 +10,7 @@ from players.models import Player, Team
 from . import rules
 from .chips import CHIPS
 from .deadlines import next_gameweek, snapshot_missing, transfer_summary
-from .live import live_gameweek, points_by_player
+from .live import gameweeks_with_stats, live_gameweek, points_by_player
 from .models import FantasyTeam, SquadPlayer
 from .ranking import overall_rank
 from .bank import get_bank
@@ -58,7 +58,21 @@ def _active_chip_name(team):
 def my_team(request):
     team = _get_team(request.user)
     snapshot_missing(team)
-    squad = list(team.squad.select_related('player__team', 'player__position'))
+    current_squad = list(team.squad.select_related('player__team', 'player__position'))
+
+    # Gameweek points: the latest one by default, or an earlier one with ?gw=6
+    available = list(gameweeks_with_stats())
+    wanted = request.GET.get('gw', '')
+    requested = next((g for g in available if str(g.number) == wanted), None)
+    live = requested or live_gameweek()
+
+    # For an earlier gameweek, show the lineup the team had at that deadline
+    gw_score = team.scores.filter(gameweek=requested).first() if requested else None
+    if gw_score is not None:
+        squad = list(gw_score.picks.select_related('player__team', 'player__position'))
+    else:
+        squad = current_squad
+
     starters = [sp for sp in squad if sp.is_starter]
     bench = sorted(
         (sp for sp in squad if not sp.is_starter),
@@ -70,25 +84,37 @@ def my_team(request):
     ]
     bank = get_bank(team)
     cost = sum(
-        (selling_price(sp.bought_price, sp.player.price) for sp in squad), Decimal('0.0')
+        (selling_price(sp.bought_price, sp.player.price) for sp in current_squad), Decimal('0.0')
     )
     has_lineup = len(starters) == rules.STARTING_XI_SIZE
 
-    # Points each player has earned in the gameweek being played (shown on the pitch)
-    live = live_gameweek()
+    # Points each player earned in that gameweek (shown on the pitch)
     live_points = points_by_player(live, squad) if live else {}
     for sp in squad:
         sp.gw_points = live_points.get(sp.player_id)
 
+    position = available.index(live) if live in available else None
+    prev_gw = available[position - 1] if position else None
+    next_gw = available[position + 1] if position is not None and position + 1 < len(available) else None
+    if live is None:
+        score_for_live = None
+    else:
+        score_for_live = gw_score or team.scores.filter(gameweek=live).first()
+
     return render(request, 'fantasy/my_team.html', {
         'live_gameweek': live,
-        'live_counts': bool(live) and team.scores.filter(gameweek=live).exists(),
+        'live_counts': score_for_live is not None,
+        'gw_score': score_for_live,
+        'viewing_frozen': gw_score is not None,
+        'viewing_other': requested is not None,
+        'prev_gw': prev_gw,
+        'next_gw': next_gw,
         'team': team,
         'pitch_rows': pitch_rows,
         'bench': bench,
         'cost': cost,
         'bank': bank,
-        'has_squad': len(squad) == rules.SQUAD_SIZE,
+        'has_squad': len(current_squad) == rules.SQUAD_SIZE,
         'has_lineup': has_lineup,
         'formation': rules.formation([sp.player for sp in starters]) if has_lineup else '',
         'next_gameweek': next_gameweek(),

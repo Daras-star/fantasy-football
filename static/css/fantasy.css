@@ -296,6 +296,4 @@ tr:hover td { background: rgba(255, 255, 255, 0.04); }
   .hide-sm { display: none; }
   .league-table { min-width: 0; }
 }
-/* ---------- Points page ---------- */
-.plate span.pts.played { background: #00a85a; font-weight: 800; }
-.player.dim { opacity: 0.7; }
+.gw-nav { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
